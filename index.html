@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-TOSS Bug Tracker — Critical Priority</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d0d;
+  --surface: #161616;
+  --surface2: #1e1e1e;
+  --border: #2a2a2a;
+  --border2: #333;
+  --text: #e8e8e8;
+  --text2: #888;
+  --text3: #555;
+  --accent: #c8f135;
+  --accent-dim: rgba(200,241,53,0.12);
+
+  --reopen: #ff6b4a;
+  --reopen-bg: rgba(255,107,74,0.12);
+  --open: #ffb547;
+  --open-bg: rgba(255,181,71,0.12);
+  --fixing: #47b8ff;
+  --fixing-bg: rgba(71,184,255,0.12);
+  --blocked: #a78bfa;
+  --blocked-bg: rgba(167,139,250,0.12);
+  --testing: #4ade80;
+  --testing-bg: rgba(74,222,128,0.12);
+  --fixed: #888;
+  --fixed-bg: rgba(136,136,136,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 0;
+}
+
+/* TOP BAR */
+.topbar {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: rgba(13,13,13,0.92);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+}
+.logo {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+}
+.logo span { color: var(--text2); }
+.topbar-right {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+}
+
+/* MAIN */
+.main { max-width: 960px; margin: 0 auto; padding: 32px 24px 80px; }
+
+/* PAGE HEADING */
+.page-heading { margin-bottom: 32px; }
+.page-heading h1 {
+  font-size: 28px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.page-heading h1 strong { font-weight: 600; color: var(--accent); }
+.page-heading p {
+  font-size: 13px;
+  color: var(--text2);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* STATS GRID */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 12px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.stat:hover, .stat.active { border-color: var(--border2); background: var(--surface2); }
+.stat.active { border-color: var(--accent); }
+.stat-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 26px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.stat-label { font-size: 11px; color: var(--text2); line-height: 1.3; }
+
+/* SEARCH */
+.search-row { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+.search-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  outline: none;
+  transition: border-color .15s;
+}
+.search-input:focus { border-color: var(--border2); }
+.search-input::placeholder { color: var(--text3); }
+.count-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text2);
+  white-space: nowrap;
+}
+
+/* TABLE */
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.table-head {
+  display: grid;
+  grid-template-columns: 52px 1fr 90px 110px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ticket-row {
+  display: grid;
+  grid-template-columns: 52px 1fr 90px 110px;
+  padding: 13px 16px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+  transition: background .1s;
+}
+.ticket-row:last-child { border-bottom: none; }
+.ticket-row:hover { background: var(--surface2); }
+.ticket-id {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text3);
+}
+.ticket-title {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tag {
+  font-size: 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  padding: 1px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+.tag-dev { background: rgba(167,139,250,0.15); color: #a78bfa; }
+.tag-ui  { background: rgba(71,184,255,0.15); color: #47b8ff; }
+
+/* STATUS BADGE / SELECT */
+.status-select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  outline: none;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+}
+.status-select option { background: #1e1e1e; color: #e8e8e8; }
+
+.s-reopen  { background: var(--reopen-bg);  color: var(--reopen); }
+.s-open    { background: var(--open-bg);    color: var(--open); }
+.s-fixing  { background: var(--fixing-bg);  color: var(--fixing); }
+.s-blocked { background: var(--blocked-bg); color: var(--blocked); }
+.s-testing { background: var(--testing-bg); color: var(--testing); }
+.s-fixed   { background: var(--fixed-bg);   color: var(--fixed); }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 20px;
+  font-size: 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text);
+  opacity: 0;
+  transition: opacity .25s, transform .25s;
+  pointer-events: none;
+  z-index: 999;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* EMPTY STATE */
+.empty {
+  padding: 40px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text3);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+@media (max-width: 600px) {
+  .stats { grid-template-columns: repeat(3, 1fr); }
+  .main { padding: 20px 16px 60px; }
+  .topbar { padding: 12px 16px; }
+  .table-head { display: none; }
+  .ticket-row { grid-template-columns: 40px 1fr 100px; }
+  .ticket-row > :nth-child(3) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">E-TOSS <span>/ Bug Tracker</span></div>
+  <div class="topbar-right" id="last-updated">CRITICAL PRIORITY</div>
+</div>
+
+<div class="main">
+  <div class="page-heading">
+    <h1>Critical <strong>Issues</strong></h1>
+    <p id="subtitle">17 tickets · last updated just now</p>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="search-row">
+    <input class="search-input" type="text" placeholder="Search ticket ID or title..." id="search" oninput="render()" />
+    <span class="count-badge" id="count-badge">17 tickets</span>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-head">
+      <div>#</div>
+      <div>Title</div>
+      <div>Type</div>
+      <div>Status</div>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STATUS_MAP = {
+  'Re-open': 's-reopen',
+  'Open': 's-open',
+  'Fixing': 's-fixing',
+  'Blocked': 's-blocked',
+  'Testing': 's-testing',
+  'Fixed': 's-fixed',
+};
+const STATUS_LABELS = {
+  'Re-open': 'Re-open',
+  'Open': 'Open',
+  'Fixing': 'Fixing',
+  'Blocked': 'Fixed (blocked)',
+  'Testing': 'Testing by User',
+  'Fixed': 'Fixed',
+};
+const STATUSES = Object.keys(STATUS_MAP);
+
+let tickets = [
+  {id:37, title:'Wrong TPCAP loading time assignment', tags:[], status:'Re-open'},
+  {id:65, title:'Time format mismatch', tags:['dev'], status:'Re-open'},
+  {id:95, title:'Front-end save log validate', tags:['ui'], status:'Open'},
+  {id:83, title:'Save error to plan log (validate master, scenario, input checker)', tags:[], status:'Fixing'},
+  {id:84, title:'Input checker get data from db and validate', tags:[], status:'Fixing'},
+  {id:87, title:'Make FE remember latest selected scenario name value', tags:['ui'], status:'Fixing'},
+  {id:89, title:'Trip overnight all load next day should use dock info from current not previous dock run', tags:[], status:'Fixing'},
+  {id:17, title:'Overnight trip cycle time and break time calculate separately', tags:['dev'], status:'Blocked'},
+  {id:53, title:'System add yard in/out in normal route', tags:[], status:'Blocked'},
+  {id:57, title:'Banned time consider only big truck', tags:['dev'], status:'Blocked'},
+  {id:58, title:'Fix ETA', tags:['dev'], status:'Blocked'},
+  {id:45, title:'Banned time relate info missing from truck sequence', tags:['dev'], status:'Testing'},
+  {id:55, title:'Dealer unloading time incorrect', tags:[], status:'Testing'},
+  {id:59, title:'Fix Trip Sequence Break Save logic', tags:[], status:'Testing'},
+  {id:61, title:'Route table incorrect: Add new route code ID for same route but different order group', tags:['dev'], status:'Testing'},
+  {id:67, title:'Break time calculation incorrect', tags:[], status:'Testing'},
+  {id:76, title:'Order grouping should done by physical not logical', tags:[], status:'Testing'},
+];
+
+// Persist to localStorage
+function save() {
+  try { localStorage.setItem('etoss_tickets', JSON.stringify(tickets)); } catch(e){}
+}
+function load() {
+  try {
+    const d = localStorage.getItem('etoss_tickets');
+    if (d) tickets = JSON.parse(d);
+  } catch(e){}
+}
+load();
+
+let activeFilter = 'all';
+
+function countBy(status) {
+  return tickets.filter(t => t.status === status).length;
+}
+
+function renderStats() {
+  const el = document.getElementById('stats');
+  const items = [
+    {label:'All', key:'all', cls:'', num: tickets.length},
+    ...STATUSES.map(s => ({label: STATUS_LABELS[s], key: s, cls: STATUS_MAP[s], num: countBy(s)}))
+  ];
+  el.innerHTML = items.map(i => `
+    <div class="stat ${activeFilter===i.key?'active':''}" onclick="setFilter('${i.key}')">
+      <div class="stat-num ${i.cls}" style="font-size:${i.num>9?'22px':'26px'}">${i.num}</div>
+      <div class="stat-label">${i.label}</div>
+    </div>
+  `).join('');
+}
+
+function render() {
+  const q = document.getElementById('search').value.toLowerCase();
+  let filtered = tickets;
+  if (activeFilter !== 'all') filtered = filtered.filter(t => t.status === activeFilter);
+  if (q) filtered = filtered.filter(t => t.title.toLowerCase().includes(q) || String(t.id).includes(q));
+
+  document.getElementById('count-badge').textContent = filtered.length + ' ticket' + (filtered.length !== 1 ? 's' : '');
+
+  const list = document.getElementById('list');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty">// no tickets match</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(t => {
+    const cls = STATUS_MAP[t.status];
+    const opts = STATUSES.map(s =>
+      `<option value="${s}" ${t.status===s?'selected':''}>${STATUS_LABELS[s]}</option>`
+    ).join('');
+    const tags = [
+      t.tags.includes('dev') ? '<span class="tag tag-dev">dev</span>' : '',
+      t.tags.includes('ui')  ? '<span class="tag tag-ui">ui</span>'  : '',
+    ].filter(Boolean).join('');
+    return `
+      <div class="ticket-row" id="row-${t.id}">
+        <div class="ticket-id">#${t.id}</div>
+        <div class="ticket-title">${t.title}</div>
+        <div>${tags}</div>
+        <div>
+          <select class="status-select ${cls}" onchange="changeStatus(${t.id}, this.value, this)">
+            ${opts}
+          </select>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  renderStats();
+}
+
+function setFilter(key) {
+  activeFilter = key;
+  render();
+}
+
+function changeStatus(id, newStatus, el) {
+  tickets = tickets.map(t => t.id === id ? {...t, status: newStatus} : t);
+  save();
+  // update select class
+  const cls = STATUS_MAP[newStatus];
+  el.className = 'status-select ' + cls;
+  // update subtitle timestamp
+  const now = new Date();
+  document.getElementById('subtitle').textContent =
+    `${tickets.length} tickets · last updated ${now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}`;
+  renderStats();
+  showToast(`#${id} → ${STATUS_LABELS[newStatus]}`);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// set initial timestamp
+document.getElementById('subtitle').textContent =
+  `${tickets.length} tickets · loaded ${new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}`;
+
+render();
+</script>
+</body>
+</html>
